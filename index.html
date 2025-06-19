@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>RPG Country Strike</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: #111;
+      color: white;
+      font-family: sans-serif;
+      overflow-x: hidden;
+    }
+
+    .game-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 80vh;
+      padding: 20px;
+      position: relative;
+      flex-wrap: wrap;
+    }
+
+    .left-side, .right-side {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 40%;
+    }
+
+    .round-flag {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid #fff;
+      margin-bottom: 10px;
+    }
+
+    .rpg-img {
+      width: 300px;
+      transform: rotate(0deg);
+    }
+
+    .enemy-img {
+      width: 100%;
+      max-width: 250px;
+      transition: 0.3s;
+    }
+
+    .missile {
+      position: absolute;
+      width: 50px;
+      top: 50%;
+      left: 120px;
+      transform: translateY(-50%);
+      z-index: 2;
+      display: none;
+    }
+
+    .splash {
+      position: absolute;
+      width: 200px;
+      height: 200px;
+      z-index: 3;
+      display: none;
+      pointer-events: none;
+    }
+
+    #fireBtn {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 15px 30px;
+      font-size: 20px;
+      background-color: crimson;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      z-index: 5;
+    }
+
+    .health-bar {
+      width: 200px;
+      height: 20px;
+      background-color: #444;
+      border-radius: 10px;
+      margin-top: 10px;
+      overflow: hidden;
+    }
+
+    .health {
+      height: 100%;
+      background-color: limegreen;
+      width: 100%;
+      transition: 0.3s;
+    }
+
+    #status {
+      text-align: center;
+      font-size: 24px;
+      color: yellow;
+      margin-top: 20px;
+    }
+
+    #shareBtn {
+      margin-top: 10px;
+      display: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+   
+  </style>
+</head>
+<body>
+
+  <div class="game-container">
+    <!-- User Side -->
+    <div class="left-side">
+      <img src="https://i.pinimg.com/736x/a8/eb/55/a8eb5535602c19901fcf4588cef3b727.jpg" class="round-flag" alt="Your Flag">
+      <img src="rpg.png" class="rpg-img" alt="RPG">
+      <div id="ammoText" style="margin-top: 10px; font-size: 18px;">Ammo: 100</div>
+    </div>
+
+    <!-- Missile -->
+    <img src="missile.png" class="missile" id="missile">
+
+    <!-- Splash -->
+    <img src="splash.png" class="splash" id="splash">
+
+    <!-- Enemy Side -->
+    <div class="right-side">
+      <img src="https://i.pinimg.com/736x/d2/b7/3e/d2b73e05511313c753ed1f9860d72e30.jpg" class="round-flag" alt="Enemy Flag">
+      <img src="state1.jpg" class="enemy-img" id="enemyImage" alt="Enemy Country">
+      <div class="health-bar">
+        <div class="health" id="enemyHealthBar"></div>
+      </div>
+      <div id="enemyHealthText" style="margin-top: 5px;">Health: 100%</div>
+    </div>
+  </div>
+
+  <button id="fireBtn">🔥 Fire!</button>
+
+  <div id="status"></div>
+  <div style="text-align: center;">
+    <button id="shareBtn">📤 Share Game</button>
+  </div>
+
+  <script>
+    let ammo = 100;
+    let enemyHealth = 100;
+
+    const ammoText = document.getElementById('ammoText');
+    const enemyHealthText = document.getElementById('enemyHealthText');
+    const enemyImage = document.getElementById('enemyImage');
+    const enemyHealthBar = document.getElementById('enemyHealthBar');
+    const fireBtn = document.getElementById('fireBtn');
+    const missile = document.getElementById('missile');
+    const splash = document.getElementById('splash');
+    const statusText = document.getElementById('status');
+    const shareBtn = document.getElementById('shareBtn');
+
+    fireBtn.addEventListener('click', () => {
+      if (enemyHealth <= 0 || ammo <= 0) return;
+      ammo--;
+      updateAmmoDisplay();
+      launchMissile();
+    });
+
+    function launchMissile() {
+      missile.style.display = 'block';
+      missile.style.top = '50%';
+      missile.style.left = '120px';
+
+      let pos = 120;
+      const interval = setInterval(() => {
+        pos += 10;
+        missile.style.left = pos + 'px';
+
+        if (pos >= window.innerWidth - 250) {
+          clearInterval(interval);
+          missile.style.display = 'none';
+          showExplosion();
+
+          setTimeout(() => {
+            damageEnemy();
+          }, 300);
+        }
+      }, 16);
+    }
+
+    function showExplosion() {
+      const enemyRect = enemyImage.getBoundingClientRect();
+      splash.style.top = (window.scrollY + enemyRect.top + enemyRect.height / 2 - splash.offsetHeight / 2) + 'px';
+      splash.style.left = (window.scrollX + enemyRect.left + enemyRect.width / 2 - splash.offsetWidth / 2) + 'px';
+      splash.style.display = 'block';
+
+      setTimeout(() => {
+        splash.style.display = 'none';
+      }, 300);
+    }
+
+    function damageEnemy() {
+      enemyHealth -= 1;
+      if (enemyHealth < 0) enemyHealth = 0;
+
+      updateVisuals();
+
+      if (enemyHealth <= 0) {
+        statusText.textContent = "🏆 You destroyed the enemy country!";
+        fireBtn.disabled = true;
+        shareBtn.style.display = "inline-block";
+      }
+    }
+
+    function updateAmmoDisplay() {
+      ammoText.textContent = `Ammo: ${ammo}`;
+      if (ammo <= 0) {
+        fireBtn.disabled = true;
+        statusText.textContent = "🪖 You're out of ammo!";
+      }
+    }
+
+    function updateHealthDisplay() {
+      enemyHealthText.textContent = `Health: ${enemyHealth}%`;
+    }
+
+    function updateVisuals() {
+      enemyHealthBar.style.width = enemyHealth + '%';
+      updateHealthDisplay();
+
+      let imageIndex = 10 - Math.floor(enemyHealth / 10);
+      if (imageIndex < 1) imageIndex = 1;
+      if (imageIndex > 10) imageIndex = 10;
+      enemyImage.src = `state${imageIndex}.jpg`;
+    }
+
+    shareBtn.addEventListener("click", () => {
+      const url = window.location.href;
+      const text = `💥 I destroyed the enemy country! Try it here: ${url}`;
+      if (navigator.share) {
+        navigator.share({ title: "Country Strike Game", text, url });
+      } else {
+        navigator.clipboard.writeText(url);
+        alert("Game link copied to clipboard!");
+      }
+    });
+
+    // Init
+    updateAmmoDisplay();
+    updateVisuals();
+  </script>
+</body>
+</html>
