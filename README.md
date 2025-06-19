@@ -1,0 +1,2 @@
+# fungames
+faq is real
